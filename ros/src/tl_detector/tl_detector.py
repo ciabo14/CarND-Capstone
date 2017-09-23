@@ -113,7 +113,7 @@ class TLDetector(object):
         """
 
         if (self.waypoints is None):
-            rospy.logwarn("tl_detector.get_closest_waypoint :: No waypoints yet")
+            #rospy.logwarn("tl_detector.get_closest_waypoint :: No waypoints yet")
             return
 
         min_dist = None

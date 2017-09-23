@@ -1,3 +1,4 @@
+import rospy
 
 MIN_NUM = float('-inf')
 MAX_NUM = float('inf')
@@ -35,3 +36,11 @@ class PID(object):
         self.last_error = error
 
         return val
+
+    def log(self, error, sample_time, meaning):
+        try:
+            derivative = (error - self.last_error) / sample_time;
+            if meaning == "steer":
+                rospy.loginfo('PROP -> %f, INT -> %f, DER -> %f',self.kp * error, self.ki * self.int_val, self.kd * derivative)
+        except Exception as e:
+            rospy.loginfo("ERROR in logging - ",e)
