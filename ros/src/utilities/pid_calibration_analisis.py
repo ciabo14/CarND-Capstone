@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-file = open("/home/student/Desktop/CarND-Capstone/data/PID_Calibration_data/steer_calibration_not_fixed_steer/dbw_node-4.log","r")
+file = open("/home/student/Desktop/CarND-Capstone/data/PID_Calibration_data/dbw_node-4.log","r")
 
 target_points = []
 current_points = []
@@ -58,8 +58,8 @@ plt.legend(handles=[blue_patch,green_patch,red_patch])
 plt.grid(True)
 
 plt.subplot(313)
-#plt.plot(range(len(target_points)), current_speed)
-plt.plot(range(len(error)), error, range(len(error)), error_filt)
+plt.plot(range(len(target_points)), current_speed)
+#plt.plot(range(len(error)), error, range(len(error)), error_filt)
 
 plt.ylabel('Speed Value')
 plt.xlabel('Sample')
