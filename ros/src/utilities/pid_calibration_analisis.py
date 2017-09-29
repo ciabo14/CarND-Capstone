@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import numpy as np 
 
 file = open("/home/student/Desktop/CarND-Capstone/data/PID_Calibration_data/dbw_node-4.log","r")
 
 target_points = []
+target_points_filt = []
+
 current_points = []
+current_points_filtered = []
 steer_PID_REQUEST = []
 steer_PID_REQUEST_FILT = []
 error = []
@@ -19,9 +23,16 @@ current_speed = []
 for l in file:
     body = l.split(": ")[1]
     if(body[0:12] == "SpeedCurrent"):
+        target = body.split(", ")[3].split("-> ")[1]
         current_speed.append(body.split(", ")[0].split("-> ")[1])
-        target_points.append(body.split(", ")[3].split("-> ")[1])
+        target_points.append(target)
+        if(len(target_points_filt) == 0):
+            target_points_filt.append(0)
+        else:
+            target_filt = (0.8 * target_points_filt[len(target_points_filt)-1]) + (0.2 * float(target))
+            target_points_filt.append(target_filt)
         current_points.append(body.split(", ")[2].split("-> ")[1])
+        current_points_filtered.append(body.split(", ")[4].split("-> ")[1])
     elif(body[0:14] == "Throttle_brake"):
         steer_PID_REQUEST.append(body.split(", ")[4].split("-> ")[1])
         steer_PID_REQUEST_FILT.append(body.split(", ")[3].split("-> ")[1])
@@ -32,10 +43,20 @@ for l in file:
         PID_I_vals.append(body.split(", ")[1].split("-> ")[1])
         PID_D_vals.append(body.split(", ")[2].split("-> ")[1])
 
+
+plt.plot(range(len(target_points)), target_points)#, range(len(target_points)), target_points_filt)
+plt.ylabel('Steer Value')
+plt.xlabel('Sample')
+plt.grid(True)
+blue_patch = mpatches.Patch(color='blue', label='Target Steer')
+plt.legend(handles=[blue_patch])
+
+
+plt.show()
 plt.figure(1)
 plt.subplot(311)
 
-plt.plot(range(len(target_points)), target_points, range(len(target_points)), current_points)
+plt.plot(range(len(target_points)), target_points )#, range(len(target_points)), current_points,range(len(target_points)), current_points_filtered)
 #plt.plot(range(len(steer_PID_REQUEST_FILT)), steer_PID_REQUEST_FILT, range(len(steer_PID_REQUEST_FILT)), steer_PID_REQUEST)
 
 plt.ylabel('Steer Value')
@@ -49,7 +70,9 @@ plt.legend(handles=[blue_patch,green_patch])
 
 plt.subplot(312)
 #plt.plot(range(len(target_points)), current_speed)
-plt.plot(range(len(PID_P_vals)), PID_P_vals, range(len(PID_P_vals)), PID_I_vals, range(len(PID_P_vals)), PID_D_vals)
+TOT = map(sum , zip(np.asarray(PID_P_vals,dtype=np.float64), np.asarray(PID_I_vals,dtype=np.float64), np.asarray(PID_D_vals,dtype=np.float64)))
+
+plt.plot(range(len(PID_P_vals)), PID_P_vals, range(len(PID_P_vals)), PID_I_vals, range(len(PID_P_vals)), PID_D_vals, range(len(PID_P_vals)), TOT)
 
 blue_patch = mpatches.Patch(color='blue', label='P val')
 green_patch = mpatches.Patch(color='green', label='I val')
@@ -58,8 +81,12 @@ plt.legend(handles=[blue_patch,green_patch,red_patch])
 plt.grid(True)
 
 plt.subplot(313)
-plt.plot(range(len(target_points)), current_speed)
+#plt.plot(range(len(target_points)), current_speed)
 #plt.plot(range(len(error)), error, range(len(error)), error_filt)
+plt.plot(range(len(steer_PID_REQUEST_FILT)), steer_PID_REQUEST_FILT, range(len(steer_PID_REQUEST_FILT)), steer_PID_REQUEST)
+
+
+
 
 plt.ylabel('Speed Value')
 plt.xlabel('Sample')

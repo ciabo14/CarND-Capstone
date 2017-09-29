@@ -8,16 +8,12 @@ import math
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
-
 As mentioned in the doc, you should ideally first implement a version which does not care
 about traffic lights or obstacles.
-
 Once you have created dbw_node, you will update this node to use the status of traffic lights too.
-
 Please note that our simulator also provides the exact location of traffic lights and their
 current status in `/vehicle/traffic_lights` message. You can use this message to build this node
 as well as to verify your TL classifier.
-
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
@@ -41,31 +37,37 @@ class WaypointUpdater(object):
         self.base_waypoints = None
         self.last_wp = None
         self.frame_id = None
+        self.loop()
+        # rospy.spin()
 
-        rospy.spin()
+    def loop(self):
+    	# published final wayponts
+
+    	rate = rospy.Rate(10)
+
+    	while not rospy.is_shutdown():
+    		rate.sleep()
+    		if self.base_waypoints is not None and self.last_pos is not None:
+				# get index closest to current position
+				self.last_wp = self.nearest_wp(self.last_pos.position, self.base_waypoints)+1
+				# fetch next LOOKAHEAD number of waypoints
+				ahead = min(len(self.base_waypoints),self.last_wp+LOOKAHEAD_WPS)
+				lookAheadWpts = self.base_waypoints[self.last_wp:ahead]
+				# construct speed for lookAheadWpts
+				for waypoint in lookAheadWpts:
+				    waypoint.twist.twist.linear.x = 10
+				# construct message to be sent
+				message_to_sent = Lane()
+				message_to_sent.header.stamp = rospy.Time.now()
+				message_to_sent.header.frame_id = self.frame_id
+				message_to_sent.waypoints = lookAheadWpts
+				self.final_waypoints_pub.publish(message_to_sent)
 
     def pose_cb(self, msg):
         # TODO: Implement
         self.last_pos = msg.pose
         self.frame_id = msg.header.frame_id
 
-        if self.base_waypoints is not None:
-            # get index closest to current position
-            self.last_wp = self.nearest_wp(self.last_pos.position, self.base_waypoints)+1
-            # fetch next LOOKAHEAD number of waypoints
-            ahead = min(len(self.base_waypoints),self.last_wp+LOOKAHEAD_WPS)
-            lookAheadWpts = self.base_waypoints[self.last_wp:ahead]
-            # construct speed for lookAheadWpts
-            for waypoint in lookAheadWpts:
-                waypoint.twist.twist.linear.x = 4.4
-            # construct message to be sent
-            message_to_sent = Lane()
-            message_to_sent.header.stamp = rospy.Time.now()
-            message_to_sent.header.frame_id = self.frame_id
-            message_to_sent.waypoints = lookAheadWpts
-            #rospy.logwarn("The last position is: %s", self.last_pos.position)
-            #rospy.logwarn("The last wp_index is: %d", self.last_wp)
-            self.final_waypoints_pub.publish(message_to_sent)
        
     def nearest_wp(self, last_position, waypoints):
         """find nearest waypoint index to the current location"""

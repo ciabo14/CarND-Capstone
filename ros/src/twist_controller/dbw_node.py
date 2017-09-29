@@ -57,15 +57,14 @@ class DBWNode(object):
         self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd', ThrottleCmd, queue_size=1)
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd', BrakeCmd, queue_size=1)
 
-        params = {"wheel_base": wheel_base, "steer_ratio": steer_ratio, "min_speed": min_speed, "max_lat_accel": max_lat_accel, "max_steer_angle": max_steer_angle, "brake_deadband": brake_deadband, "accel_limit": accel_limit, "decel_limit": decel_limit}
-
-        self.controller = Controller(**params)
-
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_cb)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_cb)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_cb)
 
-        rate = rospy.Rate(50) # 50Hz
+        params = {"wheel_base": wheel_base, "steer_ratio": steer_ratio, "min_speed": min_speed, "max_lat_accel": max_lat_accel, "max_steer_angle": max_steer_angle, "brake_deadband": brake_deadband, "accel_limit": accel_limit, "decel_limit": decel_limit}
+        self.controller = Controller(**params)
+
+        rate = rospy.Rate(11) # 50Hz
         while not rospy.is_shutdown():
             try:
                 self.loop()
@@ -94,10 +93,7 @@ class DBWNode(object):
             
         except AttributeError:
             rospy.logwarn("First messages from topics 'dbw_enabled' and/or 'twist_cmd' and/or 'current_velocity' still missing")
-            pass 
             
-
-
     def publish(self, throttle, brake, steer):
 
         tcmd = ThrottleCmd()
